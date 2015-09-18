@@ -9,9 +9,9 @@ Code is compiled using the toolchain referenced below.
 * Monitor Voltage, Current, Apparent Power, Power Factor, Reactive Power, Line Frequency and 
 
 
-** Hardware Project **
+**Hardware Project**
 
-TBD
+[hardware project](https://github.com/hwstar/HW-AC-Emeter)
 
 **Device Path**
 
@@ -64,7 +64,7 @@ After booting, the node posts a JSON encoded "muster" message to /node/info with
 |connstate  | Connection state (online)
 |device		| A device path (e.g. /home/lab/acpowermon)|
 |ip4		| The IP address assigned to the node|
-|schema		| A schema name of hwstar_relaynode (vendor_product)|
+|schema		| A schema name of hwstar_acpowermon (vendor_product)|
 |ssid       | SSID utilized|
 
 
@@ -87,7 +87,7 @@ Where $DEVICE is the configured device path
 WIFI and MQTT Configuration can optionally not be stored in the source files. It can be patched in using a custom Python utility which is available on my github account as
 a separate project:
 
-https://github.com/hwstar/ESP8266-MQTT-config-patcher
+[config patcher](https://github.com/hwstar/ESP8266-MQTT-config-patcher)
 
 Post patching allows the configuration to be changed without having sensitive information in the source files.
 
@@ -97,7 +97,7 @@ NB:Post-patching is optional. You can just edit the user_main.c source file and 
 
 Requires the ESP8266 toolchain be installed on the Linux system per the instructions available here:
 
-https://github.com/pfalcon/esp-open-sdk
+[toolchain](https://github.com/pfalcon/esp-open-sdk)
 
 Toolchain should be installed in the /opt directory. Other directories will require Makefile modifications.
 
