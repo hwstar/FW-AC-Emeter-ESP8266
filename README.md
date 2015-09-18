@@ -6,7 +6,9 @@ Code is compiled using the toolchain referenced below.
 
 **Features:**
 
-* Monitor Voltage, Current, Apparent Power, Power Factor, Reactive Power, Line Frequency and 
+* Monitor Voltage, Current, True Power, Apparent Power, Reactive Power, Power Factor, Voltage to current phase, Line Frequency and kWh used.
+
+* Reset the kWH used
 
 
 **Hardware Project**
