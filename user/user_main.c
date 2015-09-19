@@ -687,7 +687,8 @@ const char *data, uint32_t data_len)
 			if(CP_NONE == ce->type){ // Parameterless command
 				if(!os_strcmp(command, ce->command)){
 					static uint32_t calc_kwh;
-					static uint16_t irms, urms, pmean, qmean, freq, powerf, pangle, smean, fae;
+					static int16_t qmean;
+					static uint16_t irms, urms, pmean, freq, powerf, pangle, smean, fae;
 					static char irms_s[8], urms_s[8], pmean_s[8], qmean_s[8], freq_s[8], powerf_s[8], pangle_s[8], smean_s[8], kwh_s[8];
 					switch(i){
 						case CMD_QUERY:
@@ -710,10 +711,9 @@ const char *data, uint32_t data_len)
 							// complement 2.3
 							ones_compl_to_fixed_decimal_uint16(pmean_s, 3, pmean);
 							
-							
 							qmean = em_read_transaction(EM_QMEAN);
 							// complement 2.3
-							ones_compl_to_fixed_decimal_uint16(qmean_s, 3, qmean);
+							twos_compl_to_fixed_decimal_int16(qmean_s, 3, qmean);
 							
 							freq = em_read_transaction(EM_FREQ);
 							// unsigned 2.2
@@ -724,7 +724,7 @@ const char *data, uint32_t data_len)
 							twos_compl_to_fixed_decimal_int16(powerf_s, 3, powerf);
 							
 							pangle = em_read_transaction(EM_PANGLE);
-							twos_compl_to_fixed_decimal_int16(pangle_s, 1, pangle);
+							ones_compl_to_fixed_decimal_uint16(pangle_s, 1, pangle);
 							// signed 3.1
 							
 							smean = em_read_transaction(EM_SMEAN);
@@ -753,7 +753,12 @@ const char *data, uint32_t data_len)
 							break;
 							
 						case CMD_RESET_KWH:
+							// Throw away any residual energy
+						    em_read_transaction(EM_APENERGY);
 							fae_total = 0;
+							// Send proof the energy register was zeroed.
+							os_sprintf(buf, "{\"resetkwh\":\"%ld\"}", fae_total);
+							MQTT_Publish(&mqttClient, statusTopic, buf, os_strlen(buf), 0, 0);
 							break;
 							
 						case CMD_SURVEY:
