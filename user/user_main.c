@@ -948,6 +948,8 @@ LOCAL void ICACHE_FLASH_ATTR sysInit(void)
 	uint16_t readback[11];
 	em_read_block(EM_CAL_FIRST, EM_CAL_LAST, readback);
 	dump_words(readback, EM_CAL_FIRST, 11);
+	em_read_block(EM_MEAS_FIRST, EM_MEAS_LAST, readback);
+	dump_words(readback, EM_MEAS_FIRST, 10);
 	
 	
 	
