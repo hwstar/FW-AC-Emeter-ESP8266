@@ -28,6 +28,7 @@
 #define EM_SAGTH 0x03
 #define EM_SMALLPMOD 0x04
 #define EM_LASTSPIDATA 0x06
+#define EM_TCOEFF_ADJ 0x16
 #define EM_CALSTART 0x20
 #define EM_PLCONSTH 0x21
 #define EM_PLCONSTL 0x22

@@ -872,6 +872,14 @@ LOCAL void ICACHE_FLASH_ATTR sysInit(void)
 	const char *WIFIPassKey = commandElements[CMD_WIFIPASS].command;
 
 
+	// Per Atmel app note AN-643, change the Temperature coefficient from 0x8077 to 0x8097
+	em_write_transaction(EM_CALSTART, 0x9779);
+	em_write_transaction(EM_TCOEFF_ADJ, 0x8097);
+	em_write_transaction(EM_CALSTART, 0x8765);
+	os_delay_us(100000);
+
+
+
 	// If calibration data isn't in the kv store, 
 	// flag it for initialization here.
 	if(!kvstore_exists(configHandle, emCalDataKey)){
@@ -920,6 +928,8 @@ LOCAL void ICACHE_FLASH_ATTR sysInit(void)
 	// Write the KVS back out to flash	
 	
 	kvstore_flush(configHandle);
+	
+	
 	
 	
 	// Write the meter calibration data out to the EM chip
