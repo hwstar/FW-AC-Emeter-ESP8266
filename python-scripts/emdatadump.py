@@ -21,6 +21,10 @@ import argparse
 import Tkinter
 
 
+#
+# Convert unicode dict to dict of strings
+#
+
 def byteify(input):
     if isinstance(input, dict):
         return {byteify(key):byteify(value) for key,value in input.iteritems()}
@@ -37,7 +41,11 @@ def byteify(input):
 
 def on_connect(client, userdata, flags, rc):
     print("MQTT connected\n")
+
+    # Subscribe to status topic
     client.subscribe(statustopic)
+
+    # Request metering data from energy monitoring node
     client.publish(commandtopic, payload="{\"command\":\"query\"}")
 
 
@@ -48,16 +56,18 @@ def on_connect(client, userdata, flags, rc):
 #
 def on_message(client, userdata, msg):
     data = byteify(json.loads(msg.payload))
-    urms.configure(text=data['urms'])
-    irms.configure(text=data['irms'])
-    pmean.configure(text=data['pmean'])
-    smean.configure(text=data['smean'])
-    qmean.configure(text=data['qmean'])
-    freq.configure(text=data['freq'])
-    powerf.configure(text=data['powerf'])
-    pangle.configure(text=data['pangle'])
-    kwh.configure(text=data['kwh'])
+    if 'urms' in data:
+        urms.configure(text=data['urms'])
+        irms.configure(text=data['irms'])
+        pmean.configure(text=data['pmean'])
+        smean.configure(text=data['smean'])
+        qmean.configure(text=data['qmean'])
+        freq.configure(text=data['freq'])
+        powerf.configure(text=data['powerf'])
+        pangle.configure(text=data['pangle'])
+        kwh.configure(text=data['kwh'])
 
+    # Re-request query data
     client.publish(commandtopic, payload="{\"command\":\"query\"}")
 
 
@@ -81,23 +91,38 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
 
+    # Make command and status topics
     commandtopic = args.basetopic+'/command'
     statustopic = args.basetopic+'/status'
 
+    # Instantiate MQTT client
+
     client = mqtt.Client()
+
+    # Initialize MQTT callbacks
     client.on_connect = on_connect
     client.on_message = on_message
 
+    # Set username and password if supplied
     if args.user is not None:
         client.username_pw_set(args.user, args.pw)
 
+    # Connect to mqtt server
     client.connect(args.host, args.port, 60)
     print("MQTT Started\n")
+    # Dedicate thread to mqtt client
     client.loop_start()
     root = Tkinter.Tk()
-    root.geometry("200x200")
+
+    #Set geometry
+    root.geometry("800x200")
     root.columnconfigure(0, minsize=50)
     root.columnconfigure(1, minsize=50)
+
+    #Set window title to base topic
+    root.title(args.basetopic)
+
+    # Set up display fields
     Tkinter.Label(master=root, text="Vrms" ).grid(row=0, column=1)
     urms = Tkinter.Label(master=root, width=10, anchor=Tkinter.E, text='', relief=Tkinter.SUNKEN)
     urms.grid(row=0, column=0)
@@ -125,6 +150,8 @@ if __name__ == '__main__':
     Tkinter.Label(master=root, text="kWh").grid(row=8, column=1)
     kwh = Tkinter.Label(master=root, text='',width=10, anchor=Tkinter.E, relief=Tkinter.SUNKEN)
     kwh.grid(row=8, column =0)
+
+    # Enter Tk main loop
 
     root.mainloop()
 
