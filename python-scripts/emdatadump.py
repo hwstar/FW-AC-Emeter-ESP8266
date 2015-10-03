@@ -35,6 +35,21 @@ def byteify(input):
     else:
         return input
 
+def request_data_received():
+    global root
+    root.after_cancel(cancel_id)
+
+
+
+# Request data from node
+
+def request_data():
+    global cancel_id
+    global root
+    client.publish(commandtopic, payload="{\"command\":\"query\"}")
+    # Arm request timer
+    cancel_id = root.after(5000, request_data)
+
 
 
 # MQTT Connected callback
@@ -46,7 +61,9 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(statustopic)
 
     # Request metering data from energy monitoring node
-    client.publish(commandtopic, payload="{\"command\":\"query\"}")
+    request_data()
+
+
 
 
 
@@ -57,6 +74,7 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     data = byteify(json.loads(msg.payload))
     if 'urms' in data:
+        request_data_received()
         urms.configure(text=data['urms'])
         irms.configure(text=data['irms'])
         pmean.configure(text=data['pmean'])
@@ -68,8 +86,7 @@ def on_message(client, userdata, msg):
         kwh.configure(text=data['kwh'])
 
     # Re-request query data
-    client.publish(commandtopic, payload="{\"command\":\"query\"}")
-
+    request_data()
 
 
 
@@ -81,6 +98,7 @@ def on_message(client, userdata, msg):
 # Main code
 #
 if __name__ == '__main__':
+    root = Tkinter.Tk()
     # Parse command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--host",help="host name of mqtt server", default='mqtt')
@@ -112,7 +130,7 @@ if __name__ == '__main__':
     print("MQTT Started\n")
     # Dedicate thread to mqtt client
     client.loop_start()
-    root = Tkinter.Tk()
+
 
     #Set geometry
     root.geometry("800x200")
@@ -152,6 +170,7 @@ if __name__ == '__main__':
     kwh.grid(row=8, column =0)
 
     # Enter Tk main loop
+    cancel_id = None
 
     root.mainloop()
 
