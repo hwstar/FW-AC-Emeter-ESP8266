@@ -195,6 +195,68 @@ LOCAL eeprom_cal_data_t *eepromCalData;	// Place to store calibration data
 LOCAL uint32_t fae_total;
 LOCAL MQTT_Client mqttClient;				// Control block used by MQTT functions
 
+/**
+ * Convert twos complement signed 16 bit integer to fixed point number
+ */
+
+LOCAL char * ICACHE_FLASH_ATTR twos_compl_to_fixed_decimal_int16(char *dest, 
+uint8_t places, int16_t val){
+	int16_t rem;
+	int16_t quot;
+	const char *format = NULL;
+	
+	if(1 == places){
+		rem = val%10;
+		quot = val/10;
+		format = "%d.%d";
+	}
+	else if(2 == places){
+		rem = val%100;
+		quot = val/100;
+		format = "%d.%02d";
+
+	}
+	else{
+		rem = val%1000;
+		quot = val/1000;
+		format = "%d.%03d";
+	}
+	
+	// If number is negative, then convert integer and
+	// decimal parts to postive numbers, and prepend a minus sign.
+	
+	if(val < 0){
+		rem *= -1;
+		quot *= -1;
+		dest[0] = '-';
+	}
+		
+	// Generate string 
+	os_sprintf((val < 0) ? dest + 1: dest, format, quot, rem);
+	
+	return dest;
+}
+
+
+/**
+ * Convert ones complement signed 16 bit integer to fixed point number
+ */
+
+LOCAL char * ICACHE_FLASH_ATTR ones_compl_to_fixed_decimal_uint16(char *dest, 
+uint8_t places, uint16_t val){
+	uint16 twos_compl;
+
+	uint8_t negative = val & 0x8000 ? TRUE : FALSE;
+	
+	// Convert ones complement value to twos complement value
+	twos_compl = val & 0x7FFF;// Strip sign bit
+	if(negative)
+		twos_compl *= -1;
+	return twos_compl_to_fixed_decimal_int16(dest, places, twos_compl);
+		
+	
+}
+
 
 
 /**
@@ -224,85 +286,7 @@ LOCAL char * ICACHE_FLASH_ATTR to_fixed_decimal_uint16(char *dest,
 	return dest;
 }
 
-/**
- * Convert ones complement signed 16 bit integer to fixed point number
- */
 
-LOCAL char * ICACHE_FLASH_ATTR ones_compl_to_fixed_decimal_uint16(char *dest, 
-uint8_t places, uint16_t val){
-	int16_t rem;
-	int16_t quot;
-	const char *format = NULL;
-	uint8_t negative = val & 0x8000 ? TRUE : FALSE;
-	
-	val = val & 0x7FFF;// Strip sign bit
-	
-	if(1 == places){
-		rem = val%10;
-		quot = val/10;
-		format ="%d.%d";
-	}
-	else if(2 == places){
-		rem = val%100;
-		quot = val/100;
-		format = "%d.%02d";
-
-	}
-	else{
-		rem = val%1000;
-		quot = val/1000;
-		format = "%d.%03d";
-	}
-	
-	// Set the sign of the integer part if negative
-	
-	if(negative)
-		quot *= -1;
-		
-	// Generate string 
-	os_sprintf(dest, format, quot, rem);
-	
-	return dest;
-}
-
-
-/**
- * Convert twos complement signed 16 bit integer to fixed point number
- */
-
-LOCAL char * ICACHE_FLASH_ATTR twos_compl_to_fixed_decimal_int16(char *dest, 
-uint8_t places, int16_t val){
-	int16_t rem;
-	int16_t quot;
-	const char *format = NULL;
-	
-	if(1 == places){
-		rem = val%10;
-		quot = val/10;
-		format = "%d.%d";
-	}
-	else if(2 == places){
-		rem = val%100;
-		quot = val/100;
-		format = "%d.%02d";
-
-	}
-	else{
-		rem = val%1000;
-		quot = val/1000;
-		format = "%d.%03d";
-	}
-	
-	// Decimal part is always positive.
-	
-	if(val < 0)
-		rem *= -1;
-		
-	// Generate string 
-	os_sprintf(dest, format, quot, rem);
-	
-	return dest;
-}
 
 /**
  * Debug function. Dump registers as a set
