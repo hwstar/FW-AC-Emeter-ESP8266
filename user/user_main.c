@@ -520,7 +520,7 @@ LOCAL bool ICACHE_FLASH_ATTR registerCommand(struct jsonparse_state *state )
 	value = em_read_transaction(addr);
 	INFO("register: value from chip register address %02X: %04X\n", addr, value);
 	ets_sprintf(response_str, "{\"addr\": \"%02X\",\"value\":\"%04X\"}", addr, value);
-	MQTT_Publish(&mqttClient, infoTopic, response_str, os_strlen(response_str), 0, 0);
+	MQTT_Publish(&mqttClient, statusTopic, response_str, os_strlen(response_str), 0, 0);
 	return TRUE;
 }
 
